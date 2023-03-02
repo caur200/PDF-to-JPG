@@ -1,11 +1,13 @@
 import fitz
 import os
 import PySimpleGUI as sg
+from PIL import Image
 
 # Определяем элементы графического интерфейса
 layout = [
     [sg.Text("Каталог с исходными файлами:"), sg.Input(key="input_dir"), sg.FolderBrowse()],
     [sg.Text("Каталог с конечными результатами:"), sg.Input(key="output_dir"), sg.FolderBrowse()],
+    [sg.Text("Качество изображения (1-100):"), sg.Input(key="quality", size=(5, 1), default_text="85")],
     [sg.Button("Конвертировать"), sg.Button("Выход"), sg.Button("О программе")]
 ]
 
@@ -19,6 +21,7 @@ while True:
     elif event == "Конвертировать":
         input_dir = values["input_dir"]
         output_dir = values["output_dir"]
+        quality = int(values["quality"])
 
         # Создаем папку для конечных файлов, если она не существует
         if not os.path.exists(output_dir):
@@ -37,13 +40,15 @@ while True:
 
                         # Создаем имя выходного файла
                         output_filename = f"{os.path.splitext(filename)[0]}_{i+1}.jpg"
-                        # Сохраняем JPG-файл в указанном каталоге
-                        pixmap.save(os.path.join(output_dir, output_filename))
+                        # Сохраняем JPG-файл в указанном каталоге с заданным качеством
+                        with Image.frombytes('RGB', [pixmap.width, pixmap.height], pixmap.samples) as img:
+                            img.save(os.path.join(output_dir, output_filename), quality=quality)
 
         sg.popup("Конвертация завершена")
         window["input_dir"].update("")
         window["output_dir"].update("")
+        window["quality"].update("85")
 
     elif event == "О программе":
-        sg.popup("PDF в JPG конвертер", "Версия 1.0", "Автор: Артур Хидиров", "2023 год")
+        sg.popup("PDF в JPG конвертер", "Версия 1.2", "Автор: Артур Хидиров", "2023 год")
 window.close()
